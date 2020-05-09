@@ -20,10 +20,7 @@ const Item2=new Item({
     name:"Click + to add to the list"
 });
 const defaultItems= [Item1,Item2];
-Item.insertMany(defaultItems,function(err){
-    if(err){console.log(err);}
-    else{console.log("succes");}
-});
+
 
 
 let items=[];
@@ -32,11 +29,21 @@ app.get("/",function(req,res){
     // var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     // var day  = today.toLocaleDateString("en-US",options);
     Item.find({},function(err,foundItems){
-         console.log(foundItems); 
-         res.render("list",{
+        if(foundItems.length === 0){
+            Item.insertMany(defaultItems,function(err){
+                if(err){console.log(err);}
+                else{console.log("succes");}
+            });
+            res.redirect("/");
+        }
+        else{
+        // console.log(foundItems); 
+        res.render("list",{
             listTitle:"today",
             newListItems:foundItems
-        });  
+        }); 
+        }
+          
     });
    
 
@@ -44,9 +51,20 @@ app.get("/",function(req,res){
 
 });
 app.post("/",function(req,res){
-    var item=req.body.newitem;
-    items.push(item);
+    const itemName=req.body.newitem;
+    const item=new Item({name:itemName});
+    item.save();
+    // items.push(item);
     res.redirect("/");
+});
+app.post("/delete",function(req,res){
+    console.log(req.body.checkbox);
+    Item.findByIdAndRemove(checkItemId,function(err){
+        if(!err){
+            console.log("succesfully");
+            res.redirect("/");         
+        }
+    })
 });
 
 app.listen(3000,function(){
